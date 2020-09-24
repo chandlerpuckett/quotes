@@ -4,53 +4,76 @@
 package quotes;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Scanner;
 
 public class App {
 
     public static void main(String[] args) throws IOException {
 
-//        ----- Quote From API -----
-//        API: http://swquotesapi.digitaljedi.dk/api/SWQuote/RandomStarWarsQuote
+//      API: http://swquotesapi.digitaljedi.dk/api/SWQuote/RandomStarWarsQuote
 
         URL url = new URL("http://swquotesapi.digitaljedi.dk/api/SWQuote/RandomStarWarsQuote");
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
+        int responseCode = connection.getResponseCode();
 
-        BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String oneLine = input.readLine();
-        StringBuffer entireStringFromResponse = new StringBuffer();
 
-        while (oneLine != null){
-            entireStringFromResponse.append(oneLine);
-            oneLine = input.readLine();
+//      FEATURE 2 ::: if API call fails it displays from the file (code already written)
+
+        if (responseCode != 200) {   // check for good response
+
+//      ----- API CALL FAILED :: Quote From File -----
+            try { // help from https://attacomsian.com/blog/gson-read-json-file
+
+                Gson gson = new Gson();
+                Reader reader = Files.newBufferedReader(Paths.get("src/main/resources/quotes.json"));
+                Quotes[] quote = gson.fromJson(reader, Quotes[].class);
+
+                int randomNumber = randomNumber();
+                System.out.println( quote[randomNumber] );
+
+                reader.close();
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+        } else {
+
+//      ------ Star Wars API ::: Random Quote -----
+
+            BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String oneLine = input.readLine();
+            StringBuffer entireStringFromResponse = new StringBuffer();
+
+            while (oneLine != null){
+                entireStringFromResponse.append(oneLine);
+                oneLine = input.readLine();
+            }
+
+//            deserialize into java object with exact key value pair names
+
+            input.close();
+            String testing = String.valueOf(entireStringFromResponse);
+
+            Gson g = new Gson();
+            QuoteApi q = g.fromJson(testing, QuoteApi.class);
+
+            System.out.println(q);
+
         }
 
-        input.close();
+//      after pulling quote from API save it to the Json
 
-
-//        ----- Quote From File -----
-
-        try { // help from https://attacomsian.com/blog/gson-read-json-file
-            Gson gson = new Gson();
-
-            Reader reader = Files.newBufferedReader(Paths.get("src/main/resources/quotes.json"));
-
-            Quotes[] quote = gson.fromJson(reader, Quotes[].class);
-
-            int randomNumber = randomNumber();
-            System.out.println( quote[randomNumber] );
-
-            reader.close();
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
     }
 
     public static int randomNumber () {
