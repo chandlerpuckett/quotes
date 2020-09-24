@@ -5,12 +5,36 @@ package quotes;
 
 import com.google.gson.Gson;
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class App {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+
+//        ----- Quote From API -----
+//        API: http://swquotesapi.digitaljedi.dk/api/SWQuote/RandomStarWarsQuote
+
+        URL url = new URL("http://swquotesapi.digitaljedi.dk/api/SWQuote/RandomStarWarsQuote");
+
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String oneLine = input.readLine();
+        StringBuffer entireStringFromResponse = new StringBuffer();
+
+        while (oneLine != null){
+            entireStringFromResponse.append(oneLine);
+            oneLine = input.readLine();
+        }
+
+        input.close();
+
+
+//        ----- Quote From File -----
 
         try { // help from https://attacomsian.com/blog/gson-read-json-file
             Gson gson = new Gson();
