@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class App {
@@ -36,10 +37,10 @@ public class App {
 
                 Gson gson = new Gson();
                 Reader reader = Files.newBufferedReader(Paths.get("src/main/resources/quotes.json"));
-                Quotes[] quote = gson.fromJson(reader, Quotes[].class);
+                Quotes[] offlineQuoteFile = gson.fromJson(reader, Quotes[].class);
 
                 int randomNumber = randomNumber();
-                System.out.println( quote[randomNumber] );
+                System.out.println( offlineQuoteFile[randomNumber] );
 
                 reader.close();
 
@@ -63,12 +64,24 @@ public class App {
 //            deserialize into java object with exact key value pair names
 
             input.close();
-            String testing = String.valueOf(entireStringFromResponse);
+            String quoteToConstruct = String.valueOf(entireStringFromResponse);
+
 
             Gson g = new Gson();
-            QuoteApi q = g.fromJson(testing, QuoteApi.class);
+            QuoteApi q = g.fromJson(quoteToConstruct, QuoteApi.class);
+
+//      ---- saves single file ----
+
+            FileWriter save = new FileWriter("src/main/resources/savedStarWarsQuote.json");
+            g.toJson(quoteToConstruct,save);
+            save.close();
 
             System.out.println(q);
+
+//      convert quotes.json into array list -> add to array list
+//            ---------------------------------------
+//            ArrayList quoteList = new ArrayList<>();
+//            quoteList = gson.fromJson(quotesJSON, new TypeToken>(){}.getType());
 
         }
 
@@ -79,8 +92,7 @@ public class App {
     public static int randomNumber () {
         int min = 0;
         int max = 138;
-        int random = (int) (Math.random() * (max - min + 1) + min);
 
-        return random;
+        return (int) (Math.random() * (max - min + 1) + min);
     }
 }
